@@ -31,3 +31,6 @@ yarn-error.log*
 *.iml
 web/.pnpm-debug.log
 web/pnpm-lock.yaml
+
+*.zip
+main
