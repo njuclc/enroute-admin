@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"fmt"
+	v1 "github.com/flipped-aurora/gin-vue-admin/server/api/v1"
 	"github.com/flipped-aurora/gin-vue-admin/server/task"
 
 	"github.com/robfig/cron/v3"
@@ -26,12 +27,20 @@ func Timer() {
 
 		// 其他定时任务定在这里 参考上方使用方法
 
-		//_, err := global.GVA_Timer.AddTaskByFunc("定时任务标识", "corn表达式", func() {
-		//	具体执行内容...
-		//  ......
-		//}, option...)
-		//if err != nil {
-		//	fmt.Println("add timer error:", err)
-		//}
+		var warehouseApi = v1.ApiGroupApp.BizApiGroup.WarehouseExportTaskApi
+		_, err = global.GVA_Timer.AddTaskByFunc("触发导出", "0 0 1 * * *", func() {
+			warehouseApi.TriggerDianxiaomiExport(nil)
+		}, "触发导出", option...)
+		if err != nil {
+			fmt.Println("add timer error:", err)
+		}
+
+		_, err = global.GVA_Timer.AddTaskByFunc("监听导出任务", "0 0/1 * * * *", func() {
+			warehouseApi.MonitorExport(nil)
+		}, "监听任务是否完成", option...)
+		if err != nil {
+			fmt.Println("add timer error:", err)
+		}
+
 	}()
 }
