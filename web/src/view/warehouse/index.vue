@@ -9,16 +9,18 @@
       </el-table-column>
       <el-table-column label="单品/加工SKU文件" >
         <template #default="scope">
-          <el-button link type="primary" size="small" @click="handleClick(scope.row.single_url)">
+          <el-button v-if="scope.row.single_url" link type="primary" size="small" @click="handleClick(scope.row.single_url)">
             下载
           </el-button>
+          <div v-else>请等待导出任务完成</div>
         </template>
       </el-table-column>
       <el-table-column label="组合SKU文件">
         <template #default="scope">
-          <el-button link type="primary" size="small" @click="handleClick(scope.row.combined_url)">
+          <el-button v-if="scope.row.single_url" link type="primary" size="small" @click="handleClick(scope.row.combined_url)">
             下载
           </el-button>
+          <div v-else>请等待导出任务完成</div>
         </template>
       </el-table-column>
       <el-table-column prop="status" label="任务状态" />
@@ -85,7 +87,18 @@ const sortChange = ({ prop, order }) => {
 const getTableData = async() => {
   const table = await getWarehouseExportTaskList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
-    tableData.value = table.data.list
+    tableData.value = table.data.list.map((item) => {
+      if (item?.result?.processMsg?.msg) {
+        let msg =  JSON.parse(item?.result?.processMsg?.msg)
+        if(msg.downUrlList?.[0]) {
+          item.single_url = msg.downUrlList?.[0]
+        }
+        if(msg.downUrlListZu?.[0]) {
+          item.combined_url = msg.downUrlListZu?.[0]
+        }
+      }
+      return item
+    })
     total.value = table.data.total
     page.value = table.data.page
     pageSize.value = table.data.pageSize
