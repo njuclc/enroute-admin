@@ -1,19 +1,18 @@
 package biz
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/biz"
 	bizReq "github.com/flipped-aurora/gin-vue-admin/server/model/biz/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 	"gorm.io/datatypes"
-	"gorm.io/gorm/utils"
 	"log"
 )
 
@@ -183,7 +182,7 @@ func (warehouseApi *WarehouseExportTaskApi) TriggerDianxiaomiExport(c *gin.Conte
 
 	err = warehouseService.CreateWarehouseExportTask(&biz.WarehouseExportTask{
 		Source:   "dianxiaomi",
-		TaskInfo: utils.ToString(taskInfo),
+		TaskInfo: datatypes.JSON(utils.ToString(taskInfo)),
 		Result:   nil,
 		Status:   "pending",
 	})
