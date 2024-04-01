@@ -13,6 +13,7 @@ import (
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 	"gorm.io/datatypes"
+	"gorm.io/gorm/utils"
 	"log"
 )
 
@@ -168,23 +169,23 @@ func (warehouseApi *WarehouseExportTaskApi) TriggerDianxiaomiExport(c *gin.Conte
 	resp, err := client.R().SetHeader("cookie", cookies["cookies"]).
 		SetFormData(map[string]string{"templateField": fieldStr, "warehouseId": "6285210"}).
 		Post("https://www.dianxiaomi.com/warehouseProduct/export.json")
+	global.GVA_LOG.Info(fmt.Sprintf("resp: %s", utils.ToString(resp)))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	uuid := gjson.Get(resp.String(), "uuid").Str
+	global.GVA_LOG.Info(fmt.Sprintf("uuid: %s", utils.ToString(uuid)))
 
 	taskInfo := map[string]string{
 		"uuid": uuid,
 	}
 
-	bytes, _ := json.Marshal(taskInfo)
-
 	err = warehouseService.CreateWarehouseExportTask(&biz.WarehouseExportTask{
 		Source:   "dianxiaomi",
-		TaskInfo: bytes,
+		TaskInfo: utils.ToString(taskInfo),
 		Result:   nil,
-		Status:   "",
+		Status:   "pending",
 	})
 	if err != nil {
 		log.Fatal(err)

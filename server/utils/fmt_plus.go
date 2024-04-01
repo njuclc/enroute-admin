@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -79,4 +80,12 @@ func RandomString(n int) string {
 
 func RandomInt(min, max int) int {
 	return min + rand.Intn(max-min)
+}
+
+func ToString(input interface{}) string {
+	bytes, err := json.Marshal(input)
+	if err!=nil {
+		return ""
+	}
+	return string(bytes)
 }
