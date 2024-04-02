@@ -1,15 +1,14 @@
 <template>
   <div>
-    <h1>店小秘</h1>
     <el-table :data="tableData" height="250" style="width: 100%">
       <el-table-column label="更新日期" width="180">
         <template #default="scope">
-          <div>{{ scope.row.UpdatedAt.slice(0, 10) }}</div>
+          <div>{{ scope.row.UpdatedAt.slice(0, 10)+" "+scope.row.UpdatedAt.slice(11, 19) }}</div>
         </template>
       </el-table-column>
       <el-table-column label="单品/加工SKU文件" >
         <template #default="scope">
-          <el-button v-if="scope.row.single_url" link type="primary" size="small" @click="handleClick(scope.row.single_url)">
+          <el-button v-if="scope.row.single_url" plain text type="primary" size="small" @click="handleClick(scope.row.single_url)">
             下载
           </el-button>
           <div v-else>请等待导出任务完成</div>
@@ -17,13 +16,19 @@
       </el-table-column>
       <el-table-column label="组合SKU文件">
         <template #default="scope">
-          <el-button v-if="scope.row.single_url" link type="primary" size="small" @click="handleClick(scope.row.combined_url)">
+          <el-button v-if="scope.row.single_url" plain text type="primary" size="small" @click="handleClick(scope.row.combined_url)">
             下载
           </el-button>
           <div v-else>请等待导出任务完成</div>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="任务状态" />
+      <el-table-column label="任务状态">
+        <template #default="scope">
+          <el-tag v-if="scope.row.status==='success'" type="success"> {{scope.row.status}} </el-tag>
+          <el-tag v-else-if="scope.row.status==='pending'" type="primary"> {{scope.row.status}} </el-tag>
+          <el-tag v-else type="danger"> {{scope.row.status}} </el-tag>
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 </template>
