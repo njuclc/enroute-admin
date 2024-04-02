@@ -13,11 +13,6 @@
           class="min-h-[60px] text-center transition-all duration-300 flex items-center justify-center gap-2"
           :style="{background: backgroundColor}"
         >
-          <img
-            alt
-            class="w-9 h-9 p-1 bg-white rounded-full"
-            :src="$GIN_VUE_ADMIN.appLogo"
-          >
           <div
             v-if="isSider"
             class="inline-flex font-bold text-2xl"

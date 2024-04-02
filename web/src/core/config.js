@@ -3,8 +3,7 @@
  */
 
 const config = {
-  appName: 'Gin-Vue-Admin',
-  appLogo: 'https://www.gin-vue-admin.com/img/logo.png',
+  appName: 'EnRoute',
   showViteLogo: true,
   logs: [],
 }
