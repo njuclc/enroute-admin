@@ -71,6 +71,6 @@ func (warehouseService *WarehouseExportTaskService)GetWarehouseExportTaskInfoLis
        db = db.Limit(limit).Offset(offset)
     }
 	
-	err = db.Find(&warehouses).Error
+	err = db.Order("id desc").Find(&warehouses).Error
 	return  warehouses, total, err
 }
