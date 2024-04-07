@@ -199,6 +199,19 @@ const getTableData = async () => {
   }
 }
 
+const handleClick = (url) => {
+  const tokens = url.split('/');
+  console.log(tokens)
+
+  const ele = document.createElement('a');
+  ele.setAttribute('href', url);
+  ele.setAttribute('download', tokens[tokens.length-1]);
+  ele.style.display = 'none';
+  document.body.appendChild(ele);
+  ele.click();
+  document.body.removeChild(ele);
+}
+
 getTableData()
 
 </script>
