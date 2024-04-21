@@ -27,15 +27,16 @@ func Timer() {
 
 		// 其他定时任务定在这里 参考上方使用方法
 
-		var warehouseApi = v1.ApiGroupApp.BizApiGroup.WarehouseExportTaskApi
+		var warehouseApi = v1.ApiGroupApp.BizApiGroup.ExportTaskApi
 		_, err = global.GVA_Timer.AddTaskByFunc("触发导出", "0 0 1 * * *", func() {
 			warehouseApi.TriggerDianxiaomiExport(nil)
+			warehouseApi.TriggerShipbobExport(nil)
 		}, "触发导出", option...)
 		if err != nil {
 			fmt.Println("add timer error:", err)
 		}
 
-		_, err = global.GVA_Timer.AddTaskByFunc("监听导出任务", "0 0/1 * * * *", func() {
+		_, err = global.GVA_Timer.AddTaskByFunc("监听导出任务", "0 10 1 * * *", func() {
 			warehouseApi.MonitorExport(nil)
 		}, "监听任务是否完成", option...)
 		if err != nil {

@@ -15,5 +15,6 @@ func (s *EmailRouter) InitEmailRouter(Router *gin.RouterGroup) {
 	{
 		emailRouter.POST("emailTest", EmailApi)  // 发送测试邮件
 		emailRouter.POST("sendEmail", SendEmail) // 发送邮件
+		emailRouter.GET("getEmail", )
 	}
 }

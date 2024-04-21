@@ -68,11 +68,11 @@ db-list:
     disable: true
 email:
   to: xxx@qq.com
-  from: xxx@163.com
-  host: smtp.163.com
-  secret: xxx
-  nickname: test
-  port: 465
+  from: enroutejewelry.dev@outlook.com
+  host: outlook.office365.com
+  secret: tQohnD5eUzJY5H7QyvdC
+  nickname: enroutejewelry.dev
+  port: 993
   is-ssl: true
 excel:
   dir: ./resource/excel/

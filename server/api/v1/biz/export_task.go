@@ -6,6 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/biz"
 	bizReq "github.com/flipped-aurora/gin-vue-admin/server/model/biz/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	email_utils "github.com/flipped-aurora/gin-vue-admin/server/plugin/email/utils"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
@@ -14,9 +15,25 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/datatypes"
 	"log"
+	"regexp"
 )
 
-type WarehouseExportTaskApi struct {
+type SourceEnum string
+type TaskStatusEnum string
+
+const (
+	DianXiaoMi SourceEnum = "dianxiaomi"
+	ShipBob SourceEnum = "shipbob"
+)
+
+const (
+	Pending TaskStatusEnum = "pending"
+	Success TaskStatusEnum = "success"
+	Failed TaskStatusEnum = "failed"
+	Unexpected TaskStatusEnum = "unexpected"
+)
+
+type ExportTaskApi struct {
 }
 
 var warehouseService = service.ServiceGroupApp.BizServiceGroup.WarehouseExportTaskService
@@ -31,7 +48,7 @@ var externalAuthService = service.ServiceGroupApp.BizServiceGroup.ExternalAuthSe
 // @Param data body biz.WarehouseExportTask true "创建库存导出"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"创建成功"}"
 // @Router /warehouse/createWarehouseExportTask [post]
-func (warehouseApi *WarehouseExportTaskApi) CreateWarehouseExportTask(c *gin.Context) {
+func (api *ExportTaskApi) CreateWarehouseExportTask(c *gin.Context) {
 	var warehouse biz.WarehouseExportTask
 	err := c.ShouldBindJSON(&warehouse)
 	if err != nil {
@@ -56,7 +73,7 @@ func (warehouseApi *WarehouseExportTaskApi) CreateWarehouseExportTask(c *gin.Con
 // @Param data body biz.WarehouseExportTask true "删除库存导出"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
 // @Router /warehouse/deleteWarehouseExportTask [delete]
-func (warehouseApi *WarehouseExportTaskApi) DeleteWarehouseExportTask(c *gin.Context) {
+func (api *ExportTaskApi) DeleteWarehouseExportTask(c *gin.Context) {
 	ID := c.Query("ID")
 	if err := warehouseService.DeleteWarehouseExportTask(ID); err != nil {
         global.GVA_LOG.Error("删除失败!", zap.Error(err))
@@ -74,7 +91,7 @@ func (warehouseApi *WarehouseExportTaskApi) DeleteWarehouseExportTask(c *gin.Con
 // @Produce application/json
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"批量删除成功"}"
 // @Router /warehouse/deleteWarehouseExportTaskByIds [delete]
-func (warehouseApi *WarehouseExportTaskApi) DeleteWarehouseExportTaskByIds(c *gin.Context) {
+func (api *ExportTaskApi) DeleteWarehouseExportTaskByIds(c *gin.Context) {
 	IDs := c.QueryArray("IDs[]")
 	if err := warehouseService.DeleteWarehouseExportTaskByIds(IDs); err != nil {
         global.GVA_LOG.Error("批量删除失败!", zap.Error(err))
@@ -93,7 +110,7 @@ func (warehouseApi *WarehouseExportTaskApi) DeleteWarehouseExportTaskByIds(c *gi
 // @Param data body biz.WarehouseExportTask true "更新库存导出"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
 // @Router /warehouse/updateWarehouseExportTask [put]
-func (warehouseApi *WarehouseExportTaskApi) UpdateWarehouseExportTask(c *gin.Context) {
+func (api *ExportTaskApi) UpdateWarehouseExportTask(c *gin.Context) {
 	var warehouse biz.WarehouseExportTask
 	err := c.ShouldBindJSON(&warehouse)
 	if err != nil {
@@ -118,7 +135,7 @@ func (warehouseApi *WarehouseExportTaskApi) UpdateWarehouseExportTask(c *gin.Con
 // @Param data query biz.WarehouseExportTask true "用id查询库存导出"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
 // @Router /warehouse/findWarehouseExportTask [get]
-func (warehouseApi *WarehouseExportTaskApi) FindWarehouseExportTask(c *gin.Context) {
+func (api *ExportTaskApi) FindWarehouseExportTask(c *gin.Context) {
 	ID := c.Query("ID")
 	if rewarehouse, err := warehouseService.GetWarehouseExportTask(ID); err != nil {
         global.GVA_LOG.Error("查询失败!", zap.Error(err))
@@ -137,7 +154,7 @@ func (warehouseApi *WarehouseExportTaskApi) FindWarehouseExportTask(c *gin.Conte
 // @Param data query bizReq.WarehouseExportTaskSearch true "分页获取库存导出列表"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /warehouse/getWarehouseExportTaskList [get]
-func (warehouseApi *WarehouseExportTaskApi) GetWarehouseExportTaskList(c *gin.Context) {
+func (api *ExportTaskApi) GetWarehouseExportTaskList(c *gin.Context) {
 	var pageInfo bizReq.WarehouseExportTaskSearch
 	err := c.ShouldBindQuery(&pageInfo)
 	if err != nil {
@@ -157,8 +174,8 @@ func (warehouseApi *WarehouseExportTaskApi) GetWarehouseExportTaskList(c *gin.Co
     }
 }
 
-func (warehouseApi *WarehouseExportTaskApi) TriggerDianxiaomiExport(c *gin.Context) {
-	cookies, e := getHeader("dianxiaomi")
+func (api *ExportTaskApi) TriggerDianxiaomiExport(c *gin.Context) {
+	cookies, e := getHeader(DianXiaoMi)
 	if e!=nil {
 		return
 	}
@@ -181,68 +198,120 @@ func (warehouseApi *WarehouseExportTaskApi) TriggerDianxiaomiExport(c *gin.Conte
 	}
 
 	err = warehouseService.CreateWarehouseExportTask(&biz.WarehouseExportTask{
-		Source:   "dianxiaomi",
+		Source:   string(DianXiaoMi),
 		TaskInfo: datatypes.JSON(utils.ToString(taskInfo)),
 		Result:   nil,
-		Status:   "pending",
+		Status:   string(Pending),
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (warehouseApi *WarehouseExportTaskApi) MonitorExport(c *gin.Context) {
+func (api *ExportTaskApi) MonitorExport(c *gin.Context) {
 	reqInfo := bizReq.WarehouseExportTaskSearch{
 		Status:         "pending",
 	}
 	taskList, total, err :=warehouseService.GetWarehouseExportTaskInfoList(reqInfo)
 	msg := fmt.Sprintf("total: %d, err: %s, taskLen: %d", total, err, len(taskList))
 	global.GVA_LOG.Info(msg)
-	client := resty.New()
+
 
 	for _, task := range taskList {
 		fmt.Printf("start task, id: %d",task.ID)
-		cookies, e := getHeader(task.Source)
-		if e != nil {
-			global.GVA_LOG.Error(fmt.Sprintf("get header err: %s", cookies))
-			continue
+
+		result := "{}"
+		status := Failed
+		if task.Source == string(DianXiaoMi) {
+			status, result  = handlerDianxiaomiExport(task.TaskInfo.String())
+		} else if task.Source == string(ShipBob) {
+			status, result = handlerShipBobExport()
 		}
 
-		uuid :=gjson.Get(task.TaskInfo.String(), "uuid").Str
-		resp, err := client.R().SetHeader("cookie", cookies["cookies"]).
-			SetFormData(map[string]string{"uuid": uuid}).
-			Post("https://www.dianxiaomi.com/checkProcess.json")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		respCode := gjson.Get(resp.String(), "processMsg.code").Int()
-
-		if respCode==1  {
-			task.Status = "success"
-			//task.Result,_ = respCodeNode.String()
-		} else if respCode == -1 {
-			task.Status = "expired"
-		}
-
-		task.Result = datatypes.JSON(resp.String())
-		e = warehouseService.UpdateWarehouseExportTask(task)
-		if e!=nil {
-			global.GVA_LOG.Error(fmt.Sprintf("UpdateWarehouseExportTask err: %s", cookies))
-		}
+		task.Result = datatypes.JSON(result)
+		task.Status = string(status)
+		_ = warehouseService.UpdateWarehouseExportTask(task)
 	}
 }
 
-func getHeader(source string) (map[string]string, error) {
-	authInfo, err := externalAuthService.GetAuthInfo(source)
+func handlerDianxiaomiExport(taskInfo string) (TaskStatusEnum, string){
+	client := resty.New()
+	cookies, e := getHeader(DianXiaoMi)
+	if e != nil {
+		global.GVA_LOG.Error(fmt.Sprintf("get header err: %s", cookies))
+		return Failed, "{}"
+	}
+
+	uuid :=gjson.Get(taskInfo, "uuid").Str
+	resp, err := client.R().SetHeader("cookie", cookies["cookies"]).
+		SetFormData(map[string]string{"uuid": uuid}).
+		Post("https://www.dianxiaomi.com/checkProcess.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	respCode := gjson.Get(resp.String(), "processMsg.code").Int()
+	if respCode==1  {
+		return Success, resp.String()
+		//task.Result,_ = respCodeNode.String()
+	} else if respCode == -1 {
+		return Failed, resp.String()
+	}
+	return Failed, resp.String()
+}
+
+func handlerShipBobExport ()  (TaskStatusEnum, string){
+	reg, _ := regexp.Compile(`https://shipbobattachments.shipbob.com/api/attachment/[\w-]+`)
+	emailSubTitle := "Your Product Catalog Export"
+
+	downloadLink := email_utils.SearchEmail(emailSubTitle, reg)
+	res := map[string]string{
+		"downloadLink": downloadLink,
+	}
+	return Success, utils.ToString(res)
+}
+
+func (api *ExportTaskApi) TriggerShipbobExport(c *gin.Context) {
+	auth, e := getHeader(ShipBob)
+	if e!=nil {
+		return
+	}
+	client := resty.New()
+
+	resp, err := client.R().SetHeaders(auth).
+		Get("https://productsmanagementapi.shipbob.com/api/product/export?productTypeId=1&variantStatus=1&hasDigitalVariants=false")
+	global.GVA_LOG.Info(fmt.Sprintf("resp: %s", utils.ToString(resp)))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = warehouseService.CreateWarehouseExportTask(&biz.WarehouseExportTask{
+		Source:   string(ShipBob),
+		TaskInfo: datatypes.JSON(utils.ToString(resp.String())),
+		Result:   nil,
+		Status:   string(Pending),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func getHeader(source SourceEnum) (map[string]string, error) {
+	authInfo, err := externalAuthService.GetAuthInfo(string(source))
 	if err != nil {
 		return nil, err
 	}
 
-	if source == "dianxiaomi" {
+	if source == DianXiaoMi {
 		cookies := gjson.Get(authInfo, "header.cookies").Str
 		return map[string]string{
 			"cookies": cookies,
+		},nil
+	}
+	if source == ShipBob {
+		authorization := gjson.Get(authInfo, "header.authorization").Str
+		return map[string]string{
+			"authorization": authorization,
 		},nil
 	}
 

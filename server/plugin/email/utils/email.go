@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/plugin/email/global"
-
 	"github.com/jordan-wright/email"
 )
 

@@ -1,31 +1,5 @@
 <template>
   <div>
-    <div class="gva-search-box">
-      <el-form ref="elSearchFormRef" :inline="true" :model="searchInfo" class="demo-form-inline" :rules="searchRule"
-        @keyup.enter="onSubmit">
-        <el-form-item label="创建日期" prop="createdAt">
-          <template #label>
-            <span>
-              创建日期
-              <el-tooltip content="搜索范围是开始日期（包含）至结束日期（不包含）">
-                <el-icon>
-                  <QuestionFilled />
-                </el-icon>
-              </el-tooltip>
-            </span>
-          </template>
-          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始日期"
-            :disabled-date="time => searchInfo.endCreatedAt ? time.getTime() > searchInfo.endCreatedAt.getTime() : false"></el-date-picker>
-          —
-          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束日期"
-            :disabled-date="time => searchInfo.startCreatedAt ? time.getTime() < searchInfo.startCreatedAt.getTime() : false"></el-date-picker>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
-          <el-button icon="refresh" @click="onReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
     <el-table ref="multipleTable" style="width: 100%" tooltip-effect="dark" :data="tableData" row-key="ID"
       @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" />

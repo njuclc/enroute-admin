@@ -13,7 +13,7 @@ type WarehouseExportTaskRouter struct {
 func (s *WarehouseExportTaskRouter) InitWarehouseExportTaskRouter(Router *gin.RouterGroup) {
 	warehouseRouter := Router.Group("warehouse").Use(middleware.OperationRecord())
 	warehouseRouterWithoutRecord := Router.Group("warehouse")
-	var warehouseApi = v1.ApiGroupApp.BizApiGroup.WarehouseExportTaskApi
+	var warehouseApi = v1.ApiGroupApp.BizApiGroup.ExportTaskApi
 	{
 		warehouseRouter.POST("createWarehouseExportTask", warehouseApi.CreateWarehouseExportTask)   // 新建库存导出
 		warehouseRouter.DELETE("deleteWarehouseExportTask", warehouseApi.DeleteWarehouseExportTask) // 删除库存导出
@@ -23,6 +23,7 @@ func (s *WarehouseExportTaskRouter) InitWarehouseExportTaskRouter(Router *gin.Ro
 	{
 		warehouseRouterWithoutRecord.GET("manualMonitorExport", warehouseApi.MonitorExport)
 		warehouseRouterWithoutRecord.GET("manualTriggerDianxiaomiExport", warehouseApi.TriggerDianxiaomiExport)
+		warehouseRouterWithoutRecord.GET("manualTriggerShipBobExport", warehouseApi.TriggerShipbobExport)
 		warehouseRouterWithoutRecord.GET("findWarehouseExportTask", warehouseApi.FindWarehouseExportTask)        // 根据ID获取库存导出
 		warehouseRouterWithoutRecord.GET("getWarehouseExportTaskList", warehouseApi.GetWarehouseExportTaskList)  // 获取库存导出列表
 	}
