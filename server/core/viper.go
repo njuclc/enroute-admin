@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/core/internal"
-	"github.com/gin-gonic/gin"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"os"
 	"path/filepath"
 
@@ -26,17 +26,8 @@ func Viper(path ...string) *viper.Viper {
 		flag.Parse()
 		if config == "" { // 判断命令行参数是否为空
 			if configEnv := os.Getenv(internal.ConfigEnv); configEnv == "" { // 判断 internal.ConfigEnv 常量存储的环境变量是否为空
-				switch gin.Mode() {
-				case gin.DebugMode:
-					config = internal.ConfigDefaultFile
-					fmt.Printf("您正在使用gin模式的%s环境名称,config的路径为%s\n", gin.Mode(), internal.ConfigDefaultFile)
-				case gin.ReleaseMode:
-					config = internal.ConfigReleaseFile
-					fmt.Printf("您正在使用gin模式的%s环境名称,config的路径为%s\n", gin.Mode(), internal.ConfigReleaseFile)
-				case gin.TestMode:
-					config = internal.ConfigTestFile
-					fmt.Printf("您正在使用gin模式的%s环境名称,config的路径为%s\n", gin.Mode(), internal.ConfigTestFile)
-				}
+				config = internal.ConfigDefaultFile
+				fmt.Printf("config的路径为%s\n", internal.ConfigDefaultFile)
 			} else { // internal.ConfigEnv 常量存储的环境变量不为空 将值赋值于config
 				config = configEnv
 				fmt.Printf("您正在使用%s环境变量,config的路径为%s\n", internal.ConfigEnv, config)
@@ -67,6 +58,7 @@ func Viper(path ...string) *viper.Viper {
 	if err = v.Unmarshal(&global.GVA_CONFIG); err != nil {
 		panic(err)
 	}
+	fmt.Printf("配置文件：%s\n", utils.ToString(global.GVA_CONFIG))
 
 	// root 适配性 根据root位置去找到对应迁移位置,保证root路径有效
 	global.GVA_CONFIG.AutoCode.Root, _ = filepath.Abs("..")

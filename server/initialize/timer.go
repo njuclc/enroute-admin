@@ -36,7 +36,7 @@ func Timer() {
 			fmt.Println("add timer error:", err)
 		}
 
-		_, err = global.GVA_Timer.AddTaskByFunc("监听导出任务", "0 10 1 * * *", func() {
+		_, err = global.GVA_Timer.AddTaskByFunc("监听导出任务", "0 5-10 1 * * *", func() {
 			warehouseApi.MonitorExport(nil)
 		}, "监听任务是否完成", option...)
 		if err != nil {

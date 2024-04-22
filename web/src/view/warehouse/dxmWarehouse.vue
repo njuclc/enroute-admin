@@ -53,12 +53,16 @@ const props = defineProps(['tableData'])
 const formatTableData = () => {
    return props.tableData?.dianxiaomi?.map((item) => {
     if (item?.result?.processMsg?.msg) {
-      let msg = JSON.parse(item?.result?.processMsg?.msg)
-      if (msg.downUrlList?.[0]) {
-        item.single_url = msg.downUrlList?.[0]
-      }
-      if (msg.downUrlListZu?.[0]) {
-        item.combined_url = msg.downUrlListZu?.[0]
+      try {
+        let msg = JSON.parse(item?.result?.processMsg?.msg)
+        if (msg?.downUrlList?.[0]) {
+          item.single_url = msg.downUrlList?.[0]
+        }
+        if (msg?.downUrlListZu?.[0]) {
+          item.combined_url = msg.downUrlListZu?.[0]
+        }
+      } catch (error) {
+        console.error(error);
       }
     }
     return item
